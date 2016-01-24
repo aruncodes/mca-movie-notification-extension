@@ -1,0 +1,36 @@
+.movieThumb {
+	width:200px;
+	height: 160px;
+}
+
+.movieList {
+	list-style-type: none;
+	width: 202px;
+	padding: 0px;
+}
+
+.movieDetails {
+	text-align: center;
+	color: white;
+}
+
+.listItem {
+	border: black 1px;
+	padding-bottom: 5px;
+}
+
+.listItem a {
+	text-decoration: none;
+	font-weight: bold;
+}
+
+#check,#settings  {
+	float:right;
+}
+#click {
+	text-decoration: none;
+}
+body {
+	min-width: 200px;
+	background: linear-gradient( #00CC00, #00CC66);
+}

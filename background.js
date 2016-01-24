@@ -117,6 +117,8 @@ function getMovieList(lastMovie) {
 	    }
 
 	    var latestMovie = -1;
+	    var notify = [];
+	    var notifIds = [];
 		for (var i = 0; i < moviesList.length; i++) {
 			var link = moviesList[i].childNodes[0].href;
 			var id = link.slice(link.indexOf('movie_id=')+9);
@@ -131,7 +133,17 @@ function getMovieList(lastMovie) {
 
 			if(firstTime || parseInt(id) > lastMovie) { 
 				//show notification for latest movie for first time
-				chrome.notifications.create(id, {
+				// chrome.notifications.create(id, {
+				// 	type:"image",
+				// 	iconUrl:'icon.png',
+				// 	title:moviesList[i].childNodes[1].innerText,
+				// 	message:  "New movie uploaded in MCA\n" + imdb,
+				// 	imageUrl: host+thumb,
+				// 	buttons: [{title:"Close all notifications",iconUrl:"clearall.png"}]
+				// });
+				
+				notifIds.push(id);
+				notify.push({
 					type:"image",
 					iconUrl:'icon.png',
 					title:moviesList[i].childNodes[1].innerText,
@@ -155,6 +167,31 @@ function getMovieList(lastMovie) {
 			});
 		}
 
+		if(notify.length < 3) {
+			for (var j = 0; j < notify.length; j++) {
+				//show notification for latest movie for first time
+				chrome.notifications.create(notifIds[j],notify[j]);
+			}
+		} else {
+			var arr = [];
+			for (var j = 0; j < notify.length; j++) {
+				var msg = notify[j].message.slice(notify[j].message.indexOf('\n')+1);
+				arr.push({title:notify[j].title,message:msg});
+			}
+			chrome.notifications.create('group',{
+				type:"list",
+				iconUrl:'icon.png',
+				title:"New movies uploaded in MCA",
+				message : notify.length + ' movies uploaded!',
+				items:arr
+			});
+		}
+
+		/*set badge */
+		if(notify.length > 0)
+			chrome.browserAction.setBadgeText({text:''+notify.length});
+		chrome.browserAction.setBadgeBackgroundColor({color:"#F00"});
+
 		/*	store last movie and disable first time*/
 		chrome.storage.local.set({'lastMovie':latestMovie,'firstTime':false});
 
@@ -168,6 +205,12 @@ function getMovieList(lastMovie) {
 
 /*Open correspinding movie when notification is clicked*/
 chrome.notifications.onClicked.addListener(function(id) {
+	if(id=="group") {
+		chrome.tabs.create({url:host+"movies.php"});
+		chrome.notifications.clear(id);	
+		return;
+	}
+
 	if(id !== "loginerror")
 		chrome.tabs.create({url:host+"moviehomepage.php?movie_id="+id});
 	chrome.notifications.clear(id);
@@ -183,4 +226,14 @@ chrome.runtime.onMessage.addListener(function(msg,sender,sendr) {
 		setAlarm();
 		checkMCA();
 	}
+});
+
+/*close all notifications*/
+chrome.notifications.onButtonClicked.addListener(function(id,b) {
+	chrome.notifications.getAll(function(notifs) {
+		// console.log(notifs);
+		for(key in notifs) {
+			chrome.notifications.clear(key+'');
+		}
+	});
 });

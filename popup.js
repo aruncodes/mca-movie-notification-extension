@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	/* load movies when button is clicked*/
 	document.getElementById('check').addEventListener('click',function() {
-		document.getElementById('result').innerHTML =" <i> Loading... </i>";
+		document.getElementById('result').innerHTML =" <i> Loading... </i> <br> Note: This works only if you are inside IIT Bombay.";
 		chrome.runtime.sendMessage({msg:"checkMovies"});
 	});
 

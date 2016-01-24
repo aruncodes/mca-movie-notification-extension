@@ -2,10 +2,11 @@
 document.addEventListener('DOMContentLoaded', function () {
 
 	/* populate fields in settings page*/
-	chrome.storage.local.get(['uname','pass','interval'],function(items){
+	chrome.storage.local.get(['uname','pass','interval','lastMovie','lastMovieName'],function(items){
 		var u = document.getElementById('username');
 		var p = document.getElementById('password');
 		var i = document.getElementById('interval');
+		var l = document.getElementById('lastMovie');
 
 		if(!u.value) {
 			u.value = items['uname'];
@@ -16,6 +17,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		if(items['interval'])
 			i.value = items['interval'];
+
+		if(items['lastMovieName'])
+			l.innerHTML = "<b>Last Movie :</b> "+items['lastMovie']+' - '+items['lastMovieName'];
 	});
 
 	/* save values when save button is pressed */
@@ -41,5 +45,26 @@ document.addEventListener('DOMContentLoaded', function () {
 		chrome.runtime.sendMessage({msg:"updateAlarm"});
 
 		return false;
+	});
+
+	/* notification test */
+	document.getElementById('test').addEventListener('click',function() {
+
+		chrome.storage.local.get(['host','movieList'],function(items) {
+			var movieList = items['movieList'];
+
+			if(movieList.length > 0) {
+				chrome.notifications.create(movieList[0].id, {
+					type:"image",
+					iconUrl:'icon.png',
+					title:movieList[0].name,
+					message:  "New movie uploaded in MCA\n" + movieList[0].imdb,
+					imageUrl: items['host']+movieList[0].thumb
+				});
+			} else {
+				chrome.storage.local.set({'firstTime':true,'lastMovie':9999999,'lastMovieName':''});
+				chrome.runtime.sendMessage({msg:"checkMovies"});
+			}
+		});
 	});
 });

@@ -34,10 +34,16 @@ setAlarm(); //start alarm now
 
 /* Deal with firstTime loading. */
 chrome.runtime.onInstalled.addListener(function(obj) {
-	chrome.storage.local.set({'firstTime':true,'lastMovie':9999999});
+	chrome.storage.local.set({'firstTime':true,'lastMovie':9999999,'lastMovieName':''});
 	firstTime=true;
 });
 
+/* update firstTime variable*/
+chrome.storage.onChanged.addListener(function(changes,areaName) {
+	if('firstTime' in changes) {
+		firstTime = changes['firstTime'];
+	}
+});
 
 /* Check for new movies on alarm*/
 chrome.alarms.onAlarm.addListener(function(alarm) {
@@ -59,8 +65,8 @@ chrome.storage.local.get(['uname','pass'],function(items) {
 /* Initiate check for new movies*/
 function checkMCA() {
 	uname = chrome.storage.local.get(['uname','pass','lastMovie'], function (items) {
-		
 		if(!('uname' in items) || items['uname'] == "") return;
+
 		login(items['uname'],items['pass'],items['lastMovie']);
 		// getMovieList(items['lastMovie']);
 	});
@@ -117,6 +123,7 @@ function getMovieList(lastMovie) {
 	    }
 
 	    var latestMovie = -1;
+	    var latestMovieTitle = '';
 	    var notify = [];
 	    var notifIds = [];
 		for (var i = 0; i < moviesList.length; i++) {
@@ -129,7 +136,10 @@ function getMovieList(lastMovie) {
 			thumb = thumb.slice(thumb.indexOf('movies/'));
 			link = link.slice(link.indexOf('moviehomepage.php'));
 
-			if(latestMovie == -1) latestMovie = parseInt(id);
+			if(latestMovie == -1){
+				latestMovie = parseInt(id);	
+				latestMovieTitle = name;
+			}
 
 			if(firstTime || parseInt(id) > lastMovie) { 
 				//show notification for latest movie for first time
@@ -151,8 +161,10 @@ function getMovieList(lastMovie) {
 					imageUrl: host+thumb
 				});
 
-				if(parseInt(id) > latestMovie)
+				if(parseInt(id) > latestMovie){
 					latestMovie = parseInt(id);
+					latestMovieTitle = name;
+				}
 
 				firstTime = false;
 			}
@@ -193,7 +205,11 @@ function getMovieList(lastMovie) {
 		chrome.browserAction.setBadgeBackgroundColor({color:"#F00"});
 
 		/*	store last movie and disable first time*/
-		chrome.storage.local.set({'lastMovie':latestMovie,'firstTime':false});
+		chrome.storage.local.set({
+			'lastMovie':latestMovie,
+			'lastMovieName' : latestMovieTitle,
+			'firstTime':false
+		});
 
 		// console.log(movieList);
 		chrome.storage.local.set({'movieList':[]});

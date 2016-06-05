@@ -126,7 +126,22 @@ function getMovieList(lastMovie) {
 	    var latestMovieTitle = '';
 	    var notify = [];
 	    var notifIds = [];
+
+	    for (var i = 0; i < moviesList.length; i++) {
+	    	/* Find the latest movie in the list */
+	    	var link = moviesList[i].childNodes[0].href;
+	    	var id = link.slice(link.indexOf('movie_id=')+9);
+	    	var name = moviesList[i].childNodes[1].innerText;
+
+	    	if(latestMovie < parseInt(id)){
+				latestMovie = parseInt(id);	
+				latestMovieTitle = name;
+			}
+	    }
+
 		for (var i = 0; i < moviesList.length; i++) {
+			/* Generate list of all movies after latest movie */
+
 			var link = moviesList[i].childNodes[0].href;
 			var id = link.slice(link.indexOf('movie_id=')+9);
 			var thumb = moviesList[i].childNodes[0].childNodes[0].src;
@@ -136,22 +151,8 @@ function getMovieList(lastMovie) {
 			thumb = thumb.slice(thumb.indexOf('movies/'));
 			link = link.slice(link.indexOf('moviehomepage.php'));
 
-			if(latestMovie == -1){
-				latestMovie = parseInt(id);	
-				latestMovieTitle = name;
-			}
-
-			if(firstTime || parseInt(id) > lastMovie) { 
-				//show notification for latest movie for first time
-				// chrome.notifications.create(id, {
-				// 	type:"image",
-				// 	iconUrl:'icon.png',
-				// 	title:moviesList[i].childNodes[1].innerText,
-				// 	message:  "New movie uploaded in MCA\n" + imdb,
-				// 	imageUrl: host+thumb,
-				// 	buttons: [{title:"Close all notifications",iconUrl:"clearall.png"}]
-				// });
-				
+			if( (firstTime && parseInt(id) == latestMovie) || parseInt(id) > lastMovie) { 
+				/* Save list to generate notifications */			
 				notifIds.push(id);
 				notify.push({
 					type:"image",
@@ -161,12 +162,7 @@ function getMovieList(lastMovie) {
 					imageUrl: host+thumb
 				});
 
-				if(parseInt(id) > latestMovie){
-					latestMovie = parseInt(id);
-					latestMovieTitle = name;
-				}
-
-				firstTime = false;
+				firstTime = false; // For showing one movie during first time
 			}
 
 			//generate movie list
@@ -179,30 +175,8 @@ function getMovieList(lastMovie) {
 			});
 		}
 
-		if(notify.length < 3) {
-			for (var j = 0; j < notify.length; j++) {
-				//show notification for latest movie for first time
-				chrome.notifications.create(notifIds[j],notify[j]);
-			}
-		} else {
-			var arr = [];
-			for (var j = 0; j < notify.length; j++) {
-				var msg = notify[j].message.slice(notify[j].message.indexOf('\n')+1);
-				arr.push({title:notify[j].title,message:msg});
-			}
-			chrome.notifications.create('group',{
-				type:"list",
-				iconUrl:'icon.png',
-				title:"New movies uploaded in MCA",
-				message : notify.length + ' movies uploaded!',
-				items:arr
-			});
-		}
-
-		/*set badge */
-		if(notify.length > 0)
-			chrome.browserAction.setBadgeText({text:''+notify.length});
-		chrome.browserAction.setBadgeBackgroundColor({color:"#F00"});
+		/*show notifications*/
+		showNotifications(notifIds, notify);
 
 		/*	store last movie and disable first time*/
 		chrome.storage.local.set({
@@ -217,6 +191,35 @@ function getMovieList(lastMovie) {
 	  }
 	}
 	xhr.send();
+}
+
+function showNotifications(notifIds, notify) {
+	if(notify.length < 3) {
+		/* Generate individual notifications */
+		for (var j = 0; j < notify.length; j++) {
+			//show notification for latest movie for first time
+			chrome.notifications.create(notifIds[j],notify[j]);
+		}
+	} else {
+		/* Generate group notification for 3+ movies */
+		var arr = [];
+		for (var j = 0; j < notify.length; j++) {
+			var msg = notify[j].message.slice(notify[j].message.indexOf('\n')+1);
+			arr.push({title:notify[j].title,message:msg});
+		}
+		chrome.notifications.create('group',{
+			type:"list",
+			iconUrl:'icon.png',
+			title:"New movies uploaded in MCA",
+			message : notify.length + ' movies uploaded!',
+			items:arr
+		});
+	}
+
+	/*set badge */
+	if(notify.length > 0)
+		chrome.browserAction.setBadgeText({text:''+notify.length});
+	chrome.browserAction.setBadgeBackgroundColor({color:"#F00"});
 }
 
 /*Open correspinding movie when notification is clicked*/

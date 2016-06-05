@@ -36,18 +36,6 @@ function updateList() {
 		var host = items['host'];
 		var movieList = items['movieList'];
 
-		/*open movies page when title is clicked*/
-		document.getElementById('click').addEventListener('click',function(){
-			chrome.tabs.create({url:host+"movies.php"});
-		});
-
-		/*open href links on click*/
-		document.addEventListener('click',function(e){
-		  if(e.target.parentNode.href!==undefined){
-		    chrome.tabs.create({url:e.target.parentNode.href})
-		  }
-		})
-
 		displayMovieList(host,movieList);
 	});
 }
@@ -63,6 +51,20 @@ document.addEventListener('DOMContentLoaded', function () {
 	/*open settings when button is clicked */
 	document.getElementById('settings').addEventListener('click',function() {
 		chrome.tabs.create({url:"settings.html"});
+	});
+
+	chrome.storage.local.get(['host'],function(items) {
+		/*open movies page when title is clicked*/
+		document.getElementById('click').addEventListener('click',function(){
+			chrome.tabs.create({url:items['host']+"movies.php"});
+		});
+
+		/*open href links on click*/
+		document.addEventListener('click',function(e){
+		  if(e.target.parentNode.href!==undefined){
+		    chrome.tabs.create({url:e.target.parentNode.href})
+		  }
+		})
 	});
 
 	updateList();

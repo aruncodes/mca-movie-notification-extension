@@ -44,7 +44,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	/* load movies when button is clicked*/
 	document.getElementById('check').addEventListener('click',function() {
-		document.getElementById('result').innerHTML =" <i> Loading... </i> <br> Note: This works only if you are inside IIT Bombay.";
+		document.getElementById('result').innerHTML =" <i> Loading... </i> \
+		<br> Note: This works only if you are inside IIT Bombay.";
 		chrome.runtime.sendMessage({msg:"checkMovies"});
 	});
 
@@ -67,8 +68,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		})
 	});
 
-	updateList();
-
 	/*when movie list is updated, call dynamic update of popup*/
 	chrome.storage.onChanged.addListener(function(changes,areaName) {
 		if('movieList' in changes) {
@@ -77,4 +76,15 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 	chrome.browserAction.setBadgeText({text:''});
+
+	chrome.runtime.sendMessage({msg:"checkMovies"});
+
+	chrome.storage.local.get(['uname','pass'], function (items) {
+		if(!('uname' in items) || items['uname'] == "") {
+			document.getElementById('result').innerHTML =" <i> Wrong login credentials! </i> <br> \
+			Please provide username and password of MCA website in settings.. \
+			Access settings by clicking on the gear icon next to \"Check now!\" button";
+		}
+
+	});
 });

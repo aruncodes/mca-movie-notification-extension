@@ -17,10 +17,10 @@ chrome.storage.local.set({
 	'movieList':[]
 });
 
-/* Set an alarm with 15 mins as default*/
+/* Set an alarm with 60 mins as default*/
 function setAlarm() {
 	chrome.storage.local.get('interval',function(item) {
-		var interval = 15;
+		var interval = 60;
 		if('interval' in item)
 			interval = item['interval'];
 
@@ -151,7 +151,8 @@ function getMovieList(lastMovie) {
 			thumb = thumb.slice(thumb.indexOf('movies/'));
 			link = link.slice(link.indexOf('moviehomepage.php'));
 
-			if( (firstTime && parseInt(id) == latestMovie) || parseInt(id) > lastMovie) { 
+			if( (firstTime.newValue && parseInt(id) == latestMovie) || parseInt(id) > lastMovie) { 
+
 				/* Save list to generate notifications */			
 				notifIds.push(id);
 				notify.push({

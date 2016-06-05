@@ -41,7 +41,7 @@ chrome.runtime.onInstalled.addListener(function(obj) {
 /* update firstTime variable*/
 chrome.storage.onChanged.addListener(function(changes,areaName) {
 	if('firstTime' in changes) {
-		firstTime = changes['firstTime'];
+		firstTime = changes['firstTime'].newValue;
 	}
 });
 
@@ -151,7 +151,7 @@ function getMovieList(lastMovie) {
 			thumb = thumb.slice(thumb.indexOf('movies/'));
 			link = link.slice(link.indexOf('moviehomepage.php'));
 
-			if( (firstTime.newValue && parseInt(id) == latestMovie) || parseInt(id) > lastMovie) { 
+			if( (firstTime && parseInt(id) == latestMovie) || parseInt(id) > lastMovie) { 
 
 				/* Save list to generate notifications */			
 				notifIds.push(id);
